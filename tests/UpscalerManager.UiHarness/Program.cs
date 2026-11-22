@@ -99,6 +99,22 @@ namespace UpscalerManager.UiHarness
             await OmniloaderAsync();
             await Fsr4DriverFilesAsync();
             await Fsr4SwapAsync();
+            LibraryHoldsEachGameOnce("after every page the walk opened and closed");
+        }
+
+        /// <summary>
+        /// One card per game. A game's page closing rebuilds the list behind it, and a card
+        /// left over from the old list shows the game twice.
+        /// </summary>
+        private void LibraryHoldsEachGameOnce(string when)
+        {
+            _w.UpdateLayout();
+            var names = Cards().Select(c => c.GetVisualDescendants().OfType<TextBlock>().FirstOrDefault(t => t.Classes.Contains("GameTitle"))?.Text
+                                            ?? (c.DataContext as UpscalerManager.App.ViewModels.GameRowViewModel)?.Game.Name ?? "?").ToList();
+            var rows = _w.GetVisualDescendants().OfType<ItemsControl>().First(i => i.Name == "GamesList").ItemCount;
+            Check($"the library shows each game once, {when}",
+                names.Count == rows && names.Distinct().Count() == names.Count,
+                $"{names.Count} cards for {rows} rows: {string.Join(", ", names)}");
         }
 
         // ── Checks ───────────────────────────────────────────────────────────────

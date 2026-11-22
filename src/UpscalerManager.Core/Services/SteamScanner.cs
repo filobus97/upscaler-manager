@@ -13,13 +13,21 @@ public class SteamScanner : IGameScanner
 
     public List<Game> Scan()
     {
-        var games = new List<Game>();
         var installPath = GetSteamInstallPath();
-
         if (string.IsNullOrEmpty(installPath))
-            return games;
+            return new List<Game>();
 
-        var libraryFolders = GetLibraryFolders(installPath);
+        return GamesIn(GetLibraryFolders(installPath));
+    }
+
+    /// <summary>
+    /// The installed games in these libraries, each Steam app once. Steam installs an app in
+    /// one library only, so a second sighting is the same library reached by another path.
+    /// </summary>
+    internal static List<Game> GamesIn(IEnumerable<string> libraryFolders)
+    {
+        var games = new List<Game>();
+        var appIds = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var libraryPath in libraryFolders)
         {
@@ -36,7 +44,7 @@ public class SteamScanner : IGameScanner
                     if (game != null)
                     {
                         // Verify install path exists
-                        if (Directory.Exists(game.InstallPath))
+                        if (Directory.Exists(game.InstallPath) && appIds.Add(game.AppId))
                         {
                             games.Add(game);
                         }
@@ -89,13 +97,19 @@ public class SteamScanner : IGameScanner
         return candidates.FirstOrDefault(p => Directory.Exists(Path.Combine(p, "steamapps")));
     }
 
-    private static string CanonicalPath(string path)
+    /// <summary>
+    /// One spelling per folder: links resolved, and no trailing separator, which
+    /// libraryfolders.vdf can carry and which made one library read as two.
+    /// </summary>
+    internal static string CanonicalPath(string path)
     {
-        try { return new DirectoryInfo(path).ResolveLinkTarget(true)?.FullName ?? Path.GetFullPath(path); }
-        catch { return Path.GetFullPath(path); }
+        string full;
+        try { full = new DirectoryInfo(path).ResolveLinkTarget(true)?.FullName ?? Path.GetFullPath(path); }
+        catch { full = Path.GetFullPath(path); }
+        return Path.TrimEndingDirectorySeparator(full);
     }
 
-    private List<string> GetLibraryFolders(string steamPath)
+    internal static List<string> GetLibraryFolders(string steamPath)
     {
         var seen = new HashSet<string>(StringComparer.Ordinal);
         var folders = new List<string>();
@@ -131,7 +145,7 @@ public class SteamScanner : IGameScanner
         return folders;
     }
 
-    private Game? ParseManifest(string manifestPath)
+    private static Game? ParseManifest(string manifestPath)
     {
         try
         {
