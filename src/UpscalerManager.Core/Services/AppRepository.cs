@@ -17,7 +17,7 @@ namespace UpscalerManager.Core.Services;
 public static class AppRepository
 {
     public static RepositoryConfig Current { get; } =
-        new() { RepoOwner = "filobus97", RepoName = "optiscaler-manager" };
+        new() { RepoOwner = "filobus97", RepoName = "upscaler-manager" };
 
     /// <summary>
     /// Repository names this app has published under before. A rename adds the outgoing
