@@ -20,7 +20,7 @@ anything is written, and everything is reversible.
 ## Get it
 
 Download the archive for your platform from the
-[latest release](https://github.com/filobus97/optiscaler-manager/releases/latest) and
+[latest release](https://github.com/filobus97/upscaler-manager/releases/latest) and
 run it. One self-contained binary: no runtime to install, and nothing written outside
 the folder you unpacked and your config directory.
 
